@@ -10,8 +10,6 @@ import plot_functions as plot
 ####################################################
 df_raw, schema = func.read_csv()
 df = df_raw.copy(deep=True)
-color1, color2, color3 = plot.color_cycles()
-# rename some colums for better readability
 df = df.rename(columns={"PurchaseWhat": "Influence_On_Purchases", "JobSat": "Job_Satisfaction"})
 
 ####################################################
@@ -20,22 +18,12 @@ df = df.rename(columns={"PurchaseWhat": "Influence_On_Purchases", "JobSat": "Job
 #### raw dataframe overview
 no_rows, no_cols = df.shape
 perc_nan, perc_nan_over_x, number_over_x = func.get_nan_perc(df, 0.75)
-# search for specific column description
 desc = func.get_description('MainBranch')
-
-#### add gender dummy columns
-df['Gender_men'] = (df.Gender == 'Man')
-df['Gender_women'] = (df.Gender == 'Woman')
-df['Gender_other'] = (df.Gender != 'Woman') & (df.Gender != 'Man')
 
 #### create salary bins (yearly salary in USD)
 # df.ConvertedComp.describe(); df.ConvertedComp.quantile(.99) # -->99% are below 126k
 # df['Salary_Group'] = pd.cut(df['ConvertedComp'], bins=[i * 1000 for i in [0,25,50,75,100,125,150,200,2000]])
 df['Salary_Group'] = pd.cut(df['ConvertedComp'], bins=[0, df.ConvertedComp.median(), 2000000], labels=["below median", "above median"])
-
-#### create age bins
-# df.Age.describe(); df.Age.quantile(.99) # -->99% are below 61 years, ignore outliers over 100 years
-df['Age_bins'] = pd.cut(df['Age'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 99])
 
 #### add dummies for multiple choice columns to extract number of individual mentions
 DevTypeAnswers, NEWJobHuntAnswers, JobFactorsAnswers = func.get_multiple_choice_answers()
@@ -123,8 +111,8 @@ df_jobhunt_occ = (afunc.get_multiple_choice(df_occasionals, 'NEWJobHunt_', NEWJo
 df_factors_prof = (afunc.get_multiple_choice(df_professionals, 'JobFactors_', JobFactorsAnswers)).add_prefix('prof_')
 df_factors_occ = (afunc.get_multiple_choice(df_occasionals, 'JobFactors_', JobFactorsAnswers)).add_prefix('occ_')
 # add to df
-df_jobhunt = pd.concat([df_jobhunt_prof['prof_share'], df_jobhunt_occ['prof_share']], axis=1)
-df_factors = pd.concat([df_factors_prof['occ_share'], df_factors_occ['occ_share']], axis=1)
+df_jobhunt = pd.concat([df_jobhunt_prof['prof_share'], df_jobhunt_occ['occ_share']], axis=1)
+df_factors = pd.concat([df_factors_prof['prof_share'], df_factors_occ['occ_share']], axis=1)
 # plots
 df_factors = df_factors[['share', 'prof_share', 'occ_share']].plot(kind='bar')
 # plot
