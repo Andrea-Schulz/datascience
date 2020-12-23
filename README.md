@@ -20,7 +20,7 @@ Repository for Udacity's Data Scientist Nanodegree
 - - - -
 ## Installation <a name="installation"></a>
 
-xxx
+As a useful tool to improve readability of the Jupyter Notebooks I recommend the [Unofficial Jupyter Extensions](https://jupyter-contrib-nbextensions.readthedocs.io/en/latest/index.html)
 
 ## Project Motivation<a name="motivation"></a>
 
@@ -53,4 +53,6 @@ Status: [ ]
 
 ## Licensing, Authors, Acknowledgements<a name="licensing"></a>
 
-Shout out to Stack Overflow and AirBnB for providing their data on Kaggle.
+Shout out to:
+* Stack Overflow and AirBnB for providing their data on Kaggle.
+* Github for their official [Markdown Cheat Sheet](https://gtribello.github.io/mathNET/assets/notebook-writing.html)
