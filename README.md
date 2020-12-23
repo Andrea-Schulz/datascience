@@ -29,18 +29,18 @@ As a useful tool to improve readability of the Jupyter Notebooks I recommend the
 Questions of interest for Projects 1-4
 
 To complete the course, the following publicly available data was used:
-* Stackoverflow Developer Survey [2017](https://www.kaggle.com/stackoverflow/so-survey-2017), and [other years](https://insights.stackoverflow.com/survey)
+* [Stackoverflow Developer Survey](https://insights.stackoverflow.com/survey)
 * AirBnB bookings from [Seattle](https://www.kaggle.com/airbnb/seattle/data), [Boston](https://www.kaggle.com/airbnb/boston) and other Data from [InsideAirBnB](http://insideairbnb.com/get-the-data.html).
 
 ## File Descriptions <a name="files"></a>
 
-This repository contains 4 notebooks for the projects that need to be submitted for Udacity's Data Scientist Nanodegree course, as well as some exploratory code I used to practice.
+This repository contains 4 notebooks for the projects that need to be submitted for Udacity's Data Scientist Nanodegree course, as well as some exploratory code I used to practice. See below for further info
 
 ## Results<a name="results"></a>
 
 ### Project 1<a name="project1"></a>
 Status: [x]
-Looking for the key takeaways of Project 1? You'll find them in this [blog post]().
+In this Notebook, I took a look at Stackoverflows 2020 Developer Survey, trying to find out more on job satisfaction among developers and what they are looking for most in a job. Methods included binning data into different groups for comparison, normalizing those data to compare results with the overall average, as well as extracting information from multiple choice answers. Looking for the key takeaways? You'll find them in this [blog post]().
 
 ### Project 2<a name="project2"></a>
 Status: [ ]
