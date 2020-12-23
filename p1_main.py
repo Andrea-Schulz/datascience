@@ -1,8 +1,8 @@
 import pandas as pd
-import custom_functions as func
-import analysis_functions as afunc
-import prep_data as prep
-import plot_functions as plot
+import p1_custom_functions as func
+import p1_analysis_functions as afunc
+import p1_prep_data as prep
+import p1_plot_functions as plot
 
 
 ####################################################
@@ -70,7 +70,7 @@ happy_pie, happy_ax = plot.pie_chart(happy, 'share',
 
 
 ####################################################
-#### JOB SEEKING OVERALL (AMONG THOSE WITH A JOB)
+#### JOB SEEKING STATUS (AMONG THOSE WITH A JOB)
 seek = afunc.feature_overview(df, 'JobSeek', dropna=True)
 # plot
 seek_pie, seek_ax = plot.pie_chart(seek, 'share',
