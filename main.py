@@ -1,12 +1,4 @@
-import os
-import csv
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score, mean_squared_error
-import seaborn as sns
 import custom_functions as func
 import analysis_functions as afunc
 import prep_data as prep
@@ -19,7 +11,8 @@ import plot_functions as plot
 df_raw, schema = func.read_csv()
 df = df_raw.copy(deep=True)
 color1, color2, color3 = plot.color_cycles()
-
+# rename some colums for better readability
+df = df.rename(columns={"PurchaseWhat": "Influence_On_Purchases", "JobSat": "Job_Satisfaction"})
 
 ####################################################
 #### prep data
@@ -35,24 +28,16 @@ df['Gender_men'] = (df.Gender == 'Man')
 df['Gender_women'] = (df.Gender == 'Woman')
 df['Gender_other'] = (df.Gender != 'Woman') & (df.Gender != 'Man')
 
-#### add employment dummy column
-df['Employment_employed'] = (df.Employment == "Independent contractor, freelancer, or self-employed")|\
-                            (df.Employment == "Employed full-time")|\
-                            (df.Employment == "Employed part-time")
-
-#### add MainBranch dummy columns
-df['MainBranch_prof'] = (df.MainBranch == 'I am a developer by profession')
-df['MainBranch_occasion'] = (df.MainBranch == 'I am not primarily a developer, but I write code sometimes as part of my work')
-
 #### create salary bins (yearly salary in USD)
 # df.ConvertedComp.describe(); df.ConvertedComp.quantile(.99) # -->99% are below 126k
-df['ConvertedComp_bins'] = pd.cut(df['ConvertedComp'], bins=[i * 1000 for i in [0,25,50,75,100,125,150,200,2000]])
+# df['Salary_Group'] = pd.cut(df['ConvertedComp'], bins=[i * 1000 for i in [0,25,50,75,100,125,150,200,2000]])
+df['Salary_Group'] = pd.cut(df['ConvertedComp'], bins=[0, df.ConvertedComp.median(), 2000000], labels=["below median", "above median"])
 
 #### create age bins
 # df.Age.describe(); df.Age.quantile(.99) # -->99% are below 61 years, ignore outliers over 100 years
 df['Age_bins'] = pd.cut(df['Age'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 99])
 
-#### add dummies for multiple choice columns
+#### add dummies for multiple choice columns to extract number of individual mentions
 DevTypeAnswers, NEWJobHuntAnswers, JobFactorsAnswers = func.get_multiple_choice_answers()
 df = func.dummy_multiple_choice(df, 'DevType', DevTypeAnswers)
 df = func.dummy_multiple_choice(df, 'NEWJobHunt', NEWJobHuntAnswers)
@@ -61,9 +46,10 @@ df = func.dummy_multiple_choice(df, 'JobFactors', JobFactorsAnswers)
 #### drop all missing values from target column: job satisfaction
 # save df with and without happy columns
 df_full = df.copy(deep=True)
-df = prep.dropna_subset(df, 'JobSat')
+df = prep.dropna_subset(df, 'Job_Satisfaction')
 # make 3 simplified categories for target column (excl. NaN)
 df, happy_index, happy_index_bins = prep.new_happy_bins(df)
+
 
 ####################################################
 #### analyze data: data overview & leading questions
@@ -75,7 +61,7 @@ df, happy_index, happy_index_bins = prep.new_happy_bins(df)
 job_seeking = afunc.feature_overview(df_full, 'JobSeek', dropna=False)
 employment_status = afunc.feature_overview(df_full, 'Employment', dropna=False)
 main_branch = afunc.feature_overview(df_full, 'MainBranch', dropna=False)
-# ...FOR THOSE EMPLOYED AND INCLUDED IN JOBSAT
+# ...FOR THOSE EMPLOYED AND INCLUDED IN Job_Satisfaction
 job_seeking = afunc.feature_overview(df, 'JobSeek', dropna=False)
 employment_status = afunc.feature_overview(df, 'Employment', dropna=False)
 main_branch = afunc.feature_overview(df, 'MainBranch', dropna=False)
@@ -84,7 +70,7 @@ main_branch = afunc.feature_overview(df, 'MainBranch', dropna=False)
 ####################################################
 #### HAPPINESS OVERALL
 # job satisfaction applies only to those with a job --> 30% nan
-happy = afunc.feature_overview(df, 'JobSat', dropna=True)
+happy = afunc.feature_overview(df, 'Job_Satisfaction', dropna=True)
 happy.index = happy.index.fillna(value='not answered')
 happy = happy.reindex(happy_index)
 # plot
@@ -109,13 +95,8 @@ seek_pie, seek_ax = plot.pie_chart(seek, 'share',
 ####################################################
 #### MOST IMPORTANT PUSH AND PULL FACTORS OVERALL
 # PUSH: What drives you to look for a new job?
-df_jobhunt = df.filter(regex='NEWJobHunt_', axis=1).dropna().sum().rename('count')
-share = df_jobhunt/df.shape[0]
-df_jobhunt = pd.concat([df_jobhunt, share.rename('share'), pd.Series(NEWJobHuntAnswers, index=df_jobhunt.index, name='answers')], axis=1).set_index('answers')
-# PULL: 3 most important factors in a job apart from salary and benefits
-df_factors = df.filter(regex='JobFactors_', axis=1).dropna().sum().rename('count')
-share = df_factors/df.shape[0]
-df_factors = pd.concat([df_factors, share.rename('share'), pd.Series(JobFactorsAnswers, index=df_factors.index, name='answers')], axis=1).set_index('answers')
+df_jobhunt = afunc.get_multiple_choice(df, 'NEWJobHunt_', NEWJobHuntAnswers)
+df_factors = afunc.get_multiple_choice(df, 'JobFactors_', JobFactorsAnswers)
 # plots
 jobhunt_bar, jobhunt_ax = plot.horizontal_bars(df_jobhunt, 'share', percentage=True,
                                                xlabel='Number of mentions in %',
@@ -131,99 +112,76 @@ factors_bar, factors_ax = plot.horizontal_bars(df_factors, 'share', percentage=T
 
 ####################################################
 #### MOST IMPORTANT PUSH AND PULL FACTORS BY X
-#### Developer Type
-df_dev = df.filter(regex='DevType_', axis=1).dropna().sum().rename('count')
-share = df_dev/df.shape[0]
-df_dev = pd.concat([df_dev, share.rename('share'), pd.Series(DevTypeAnswers, index=df_dev.index, name='answers')], axis=1).set_index('answers')
 
+#### by MainBranch
+# filter for MainBranch
+df_professionals = df.loc[df.MainBranch == 'I am a developer by profession']
+df_occasionals = df.loc[df.MainBranch == 'I am not primarily a developer, but I write code sometimes as part of my work']
+# get push/pull factors by MainBranch
+df_jobhunt_prof = (afunc.get_multiple_choice(df_professionals, 'NEWJobHunt_', NEWJobHuntAnswers)).add_prefix('prof_')
+df_jobhunt_occ = (afunc.get_multiple_choice(df_occasionals, 'NEWJobHunt_', NEWJobHuntAnswers)).add_prefix('occ_')
+df_factors_prof = (afunc.get_multiple_choice(df_professionals, 'JobFactors_', JobFactorsAnswers)).add_prefix('prof_')
+df_factors_occ = (afunc.get_multiple_choice(df_occasionals, 'JobFactors_', JobFactorsAnswers)).add_prefix('occ_')
+# add to df
+df_jobhunt = pd.concat([df_jobhunt_prof['prof_share'], df_jobhunt_occ['prof_share']], axis=1)
+df_factors = pd.concat([df_factors_prof['occ_share'], df_factors_occ['occ_share']], axis=1)
+# plots
+df_factors = df_factors[['share', 'prof_share', 'occ_share']].plot(kind='bar')
+# plot
+factors_bar, factors_ax = plot.horizontal_bars(df_factors, 'share', percentage=True,
+                                               xlabel='Number of mentions in %',
+                                               title=f'What Are Your Most Important Factors in Deciding for a Job Offer?\n'
+                                                     f'(Apart from Salary, Location and Benefits - Select 3 Most Important)',
+                                               filename='factors_bar')
 
 ####################################################
 #### HAPPINESS FACTORS
-#### correlations for categorical columns
-
 
 ####...by MainBranch
 # job satisfaction applies only to those with a job (=developer or code as part of work)
-branch_count, branch_share = afunc.feature_by_x(df, 'JobSat', 'MainBranch')
+branch_count, branch_share = afunc.feature_by_x(df, 'Job_Satisfaction', 'MainBranch')
 branch_share = branch_share.reindex(happy_index)
 branch_share_diff = branch_share.sub(happy['share'], axis=0)
-# branch_share_diff.plot(kind='bar')
-# plt.tight_layout()
-# developers by profession (with 90% of those currently working by far the larger group) are well represented, slightly more happy
-# proportion of people "very satisfied" is almost 25% less for those who only work with code as part of their work
+# plot
+fig, ax = plot.horizontal_bars_df(branch_share_diff, title='Job Satisfaction Ratings by Job Branch in [%] Compared to Overall Job Satisfaction',
+                                  color=['#8C979F', '#9E8C9F'], filename='happiness_by_branch', percentage=True)
 
+#### by self-employment
+# filter for employment status
+df_selfemp = df.loc[df.Employment == "Independent contractor, freelancer, or self-employed"]
+df_emp = df.loc[(df.Employment == "Employed full-time")|(df.Employment == "Employed part-time")]
+# get job satisfaction ratings for groups
+happy_selfemp = (afunc.feature_overview(df_selfemp, 'Job_Satisfaction', dropna=True)).add_prefix('selfemp_')
+happy_emp = (afunc.feature_overview(df_emp, 'Job_Satisfaction', dropna=True)).add_prefix('emp_')
+# compare to average
+df_employment = pd.concat([(happy_emp['emp_share'].sub(happy['share'], axis=0)).rename('employed'),
+                           (happy_selfemp['selfemp_share'].sub(happy['share'], axis=0)).rename('self-employed')],
+                          axis=1)
+# plot
+fig, ax = plot.horizontal_bars_df(df_employment.reindex(happy_index),
+                                  title='Job Satisfaction Ratings by Employment Status in [%] Compared to Overall Job Satisfaction',
+                                  color=['#9F948C', '#9E8C9F'], filename='happiness_by_employment', percentage=True)
 
-####...by salary
-sal_count, sal_share = afunc.feature_by_x(df, 'JobSat', 'ConvertedComp_bins')
-sal_share = sal_share.reindex(happy_index)
-sal_share_diff = sal_share.sub(happy['share'], axis=0)  # get diffs concerning overall satisfaction
-# sal_share_diff.plot(kind='bar')
-# plt.tight_layout()
-# people seem to tend more towards being "very satisfied" with increasing salary
-# proportion of people with lower salary which are "very satisfied" is >12% less than the general group
-# for the other ratings there is no clear trend in terms of more salary - more satisfaction
-
-
-####...by JobSeek status (developer position)
-# DevType only for (former) professional developers
-job_count, job_share = afunc.feature_by_x(df, 'JobSat', 'JobSeek')
-job_share = job_share.reindex(happy_index)
-job_share_diff = job_share.sub(happy['share'], axis=0)
-# job_share_diff.plot(kind='bar')
-# plt.tight_layout()
-# very happy people not interested / very unhappy people looking more than general group
-# slightly dissatisfied/satisfied people are looking/open to opportunities
-
-
-
-####...by NEWOvertime
-working_count, working_share = afunc.feature_by_x(df, 'JobSat', 'NEWOvertime')
-working_share = working_share.reindex(happy_index)
-working_share_diff = working_share.sub(happy['share'], axis=0)
-# working_share_diff.plot(kind='bar')
-# plt.tight_layout()
-
-####...by Hobbyist
-hobby_count, hobby_share = afunc.feature_by_x(df, 'JobSat', 'Hobbyist')
-hobby_share = hobby_share.reindex(happy_index)
-hobby_share_diff = hobby_share.sub(happy['share'], axis=0)
-# hobby_share_diff.plot(kind='bar')
-# plt.tight_layout()
-
-####...by NEWLearn
-learn_count, learn_share = afunc.feature_by_x(df, 'JobSat', 'NEWLearn')
-learn_share = learn_share.reindex(happy_index)
-learn_share_diff = learn_share.sub(happy['share'], axis=0)
-# learn_share_diff.plot(kind='bar')
-# plt.tight_layout()
-# similar distribution: no clear correlation
-
-####...by PurchaseWhat status (developer position)
-purchase_count, purchase_share = afunc.feature_by_x(df, 'JobSat', 'PurchaseWhat')
+####...by Influence On Purchases (developer position)
+purchase_count, purchase_share = afunc.feature_by_x(df, 'Job_Satisfaction', 'Influence_On_Purchases')
 purchase_share = purchase_share.reindex(happy_index)
 purchase_share_diff = purchase_share.sub(happy['share'], axis=0)
-# purchase_share_diff.plot(kind='bar')
-# plt.tight_layout()
-# seems to be a major boost for people to be "Very satisfied" (+12% compared to people with no/little influence)
+# plot
+fig, ax = plot.horizontal_bars_df_multi(purchase_share_diff.reindex(happy_index).dropna(),
+                                        title='Job Satisfaction Ratings by Technical Decisionmaking Competency in [%]\n'
+                                              'Compared to Overall Job Satisfaction',
+                                        color=['#A26B61', '#6198A2', '#9E8C9F'],
+                                        filename='happiness_by_purchase', percentage=True)
+
+####...by salary
+sal_count, sal_share = afunc.feature_by_x(df, 'Job_Satisfaction', 'Salary_Group')
+sal_share = sal_share.reindex(happy_index)
+sal_share_diff = sal_share.sub(happy['share'], axis=0)  # get diffs concerning overall satisfaction
+sal_share_diff.index = sal_share_diff.index.rename('Job Satisfaction')
+# plot
+fig, ax = plot.horizontal_bars_df(sal_share_diff.reindex(happy_index),
+                                  title='Job Satisfaction Ratings by Salary in [%] Compared to Overall Job Satisfaction',
+                                  color=['#A26B61', '#6198A2'], filename='happiness_by_salary', percentage=True)
 
 
-####################################################
-#### JOB PUSH AND PULL FACTORS
-
-df_type = df.filter(regex='DevType_', axis=1)
-df_factors = df.filter(regex='JobFactors_', axis=1)
-df_hunt = df.filter(regex='NEWJobHunt_', axis=1)
-
-df_type.sum().sort_values()
-df_factors.sum().sort_values()
-df_hunt.sum().sort_values()
-
-
-####...by Gender
-happy_gender = afunc.happiness_by_gender(df, happy_index)
-happy_gender.plot(kind='bar')
-
-
-
-print('done')
 print('done')

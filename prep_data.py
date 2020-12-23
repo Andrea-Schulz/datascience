@@ -1,15 +1,3 @@
-import os
-import csv
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score, mean_squared_error
-import seaborn as sns
-import custom_functions as f
-import analysis_functions as a
-
 
 def dropna_subset(df, subset):
     # drop all missing values from target column
@@ -18,7 +6,7 @@ def dropna_subset(df, subset):
 
 def new_happy_bins(df):
     # make 3 new categories for target column (excl. NaN)
-    df['JobSat_bins'] = df['JobSat'].replace({'Very satisfied': 'satisfied',
+    df['Job_Satisfaction_bins'] = df['Job_Satisfaction'].replace({'Very satisfied': 'satisfied',
                                               'Slightly satisfied': 'satisfied',
                                               'Very dissatisfied': 'dissatisfied',
                                               'Slightly dissatisfied': 'dissatisfied',
