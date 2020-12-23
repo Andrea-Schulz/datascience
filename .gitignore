@@ -1,5 +1,6 @@
 # custom stuff
 data/
+results/
 *.iml
 *.xml
 
