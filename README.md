@@ -27,14 +27,14 @@ Repository for Udacity's Data Scientist Nanodegree
 
 ...becoming a Data Scientist, duh. The Data Scientist Nanodegree course contains 4 projects, with the questions of interest differing for each one:
 
-1. The First Project was about selecting a dataset of my own choice, come up with some questions I wanted to find out more about and analyze the dataset accordingly. The results should be presented in a blog post.
+1. The First Project was about selecting a dataset of my own choice, come up with some questions I wanted to find out more about and then analyze the dataset accordingly. The analysis results should be presented in a blog post for a broader audience.
 2. ...
 3. ...
 4. ...
 
 ## File Descriptions <a name="files"></a>
 
-This repository contains notebooks 1 through 4 for the four projects that need to be submitted for Udacity's Data Scientist Nanodegree course, as well as some exploratory Python scripts I used to practice. These scripts are named after the project they belong to, i.e. "p1_<filename>.py" for the files that belong to Project 1.
+This repository contains notebooks 1 through 4 for the four projects that need to be submitted for Udacity's Data Scientist Nanodegree course, as well as some exploratory Python scripts I used to practice. These scripts are named after the project they belong to, i.e. "p1_filename.py" for a file belonging to Project 1.
 
 To complete the course, the following publicly available data was used:
 * Results from the annual [Stackoverflow Developer Survey](https://insights.stackoverflow.com/survey)
