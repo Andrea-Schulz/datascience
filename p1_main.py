@@ -82,9 +82,17 @@ seek_pie, seek_ax = plot.pie_chart(seek, 'share',
 
 ####################################################
 #### MOST IMPORTANT PUSH AND PULL FACTORS OVERALL
-# PUSH: What drives you to look for a new job?
-df_jobhunt = afunc.get_multiple_choice(df, 'NEWJobHunt_', NEWJobHuntAnswers)
-df_factors = afunc.get_multiple_choice(df, 'JobFactors_', JobFactorsAnswers)
+
+jobhunt = df['NEWJobHunt'].astype('string').str.get_dummies(sep=';')
+jobhunt_count = jobhunt.sum().rename('count')
+df_jobhunt = pd.concat([jobhunt_count, (jobhunt_count/jobhunt.shape[0]).rename('share')], axis=1)
+
+factors = df['JobFactors'].astype('string').str.get_dummies(sep=';')
+factors_count = factors.sum().rename('count')
+df_factors = pd.concat([factors_count, (factors_count/factors.shape[0]).rename('share')], axis=1)
+
+
+
 # plots
 jobhunt_bar, jobhunt_ax = plot.horizontal_bars(df_jobhunt, 'share', percentage=True,
                                                xlabel='Number of mentions in %',

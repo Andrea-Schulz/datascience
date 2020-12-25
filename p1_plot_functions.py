@@ -82,3 +82,5 @@ def horizontal_bars_df_multi(df, title='', color=['#6198A2','#A26B61'], filename
     plt.tight_layout()
     fig.savefig(f"results/{filename}.png")
     return fig, ax
+
+
