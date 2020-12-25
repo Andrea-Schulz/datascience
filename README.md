@@ -45,7 +45,7 @@ To complete the course, the following publicly available data was used:
 ### Project 1<a name="project1"></a>
 In this Notebook, I took a look at Stackoverflows 2020 Developer Survey, trying to find out more on job satisfaction among developers and what they are looking for most in a job. Methods included binning data into different groups for comparison, normalizing those data to compare results with the overall average, as well as extracting information from multiple choice answers.
 
-Looking for the key takeaways? You'll find them in this [blog post]().
+Looking for the key takeaways? You'll find them in this [blog post](https://andrea-s-schulz.medium.com/assessing-job-satisfaction-what-are-developers-looking-for-in-a-job-573e8107d068).
 
 ### Project 2<a name="project2"></a>
 ...
